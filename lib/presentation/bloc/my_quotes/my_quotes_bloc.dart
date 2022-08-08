@@ -1,6 +1,6 @@
-import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:isar_flutter/domain/model/quotes_domain.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:isar_flutter/domain/model/quotes_with_label_domain.dart';
 import 'package:isar_flutter/domain/usecase/deleted_quotes_usecase.dart';
 import 'package:isar_flutter/domain/usecase/get_save_quotes_usecase.dart';
 
@@ -16,11 +16,21 @@ class MyQuotesBloc extends Bloc<MyQuotesEvent, MyQuotesState> {
     required this.deletedQuotesUsecase,
   }) : super(MyQuotesState.intial()) {
     on<MyQuotesEventInitial>((event, emit) async {
-      final result = await getSaveQuotesUsecase.execute();
+      final limit = event.forceRefresh ? state.limit : state.limit + 5;
+
+      final result = await getSaveQuotesUsecase.execute(limit: limit);
 
       result.fold(
         (error) => print(error),
-        (result) => emit(state.copyWith(quotes: result)),
+        (result) {
+          print(result);
+          emit(
+            state.copyWith(
+              quotes: result,
+              limit: limit,
+            ),
+          );
+        },
       );
     });
 
@@ -30,7 +40,7 @@ class MyQuotesBloc extends Bloc<MyQuotesEvent, MyQuotesState> {
       result.fold(
         (error) => print(error),
         (result) {
-          add(MyQuotesEventInitial());
+          add(MyQuotesEventInitial(forceRefresh: true));
         },
       );
     });

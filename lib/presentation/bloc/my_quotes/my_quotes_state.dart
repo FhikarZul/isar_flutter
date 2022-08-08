@@ -1,16 +1,27 @@
 part of 'my_quotes_bloc.dart';
 
 class MyQuotesState extends Equatable {
-  final List<QuotesDomain> quotes;
+  final List<QuotesWithLabelDomain> quotes;
+  final int limit;
 
-  const MyQuotesState({required this.quotes});
+  const MyQuotesState({
+    required this.quotes,
+    required this.limit,
+  });
 
-  MyQuotesState.intial() : quotes = [];
+  MyQuotesState.intial()
+      : quotes = [],
+        limit = 8;
 
-  MyQuotesState copyWith({List<QuotesDomain>? quotes}) => MyQuotesState(
+  MyQuotesState copyWith({
+    List<QuotesWithLabelDomain>? quotes,
+    int? limit,
+  }) =>
+      MyQuotesState(
         quotes: quotes ?? this.quotes,
+        limit: limit ?? this.limit,
       );
 
   @override
-  List<Object> get props => [quotes];
+  List<Object> get props => [quotes, limit];
 }

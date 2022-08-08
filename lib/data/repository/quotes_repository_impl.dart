@@ -5,6 +5,7 @@ import 'package:dartz/dartz.dart';
 import 'package:isar_flutter/data/data_source/local/quotes_local_data_source.dart';
 import 'package:isar_flutter/data/data_source/remote/quotes_remote_data_source.dart';
 import 'package:isar_flutter/domain/model/quotes_domain.dart';
+import 'package:isar_flutter/domain/model/quotes_with_label_domain.dart';
 import 'package:isar_flutter/domain/repository/quotes_repository.dart';
 
 class QuotesRepositoryImpl extends IQuotesRepository {
@@ -36,9 +37,10 @@ class QuotesRepositoryImpl extends IQuotesRepository {
   }
 
   @override
-  Future<Either<Exception, List<QuotesDomain>>> getSaveQuote() async {
+  Future<Either<Exception, List<QuotesWithLabelDomain>>> getSaveQuote(
+      {required int limit}) async {
     try {
-      final result = await localDataSource.getQuotes();
+      final result = await localDataSource.getQuotes(limit: limit);
 
       return Right(result.map((e) => e.toDomain()).toList());
     } catch (e) {
@@ -50,11 +52,13 @@ class QuotesRepositoryImpl extends IQuotesRepository {
   Future<Either<Exception, bool>> saveQuote({
     required String text,
     required String author,
+    required String label,
   }) async {
     try {
       await localDataSource.insertQuotes(
         text: text,
         author: author,
+        label: label,
       );
 
       return const Right(true);

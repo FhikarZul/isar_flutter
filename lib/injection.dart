@@ -3,11 +3,14 @@ import 'package:http/http.dart';
 import 'package:isar_flutter/data/data_source/local/isar_config.dart';
 import 'package:isar_flutter/data/data_source/local/quotes_local_data_source.dart';
 import 'package:isar_flutter/data/data_source/remote/quotes_remote_data_source.dart';
+import 'package:isar_flutter/data/repository/internet_connectivity_repository_impl.dart';
 import 'package:isar_flutter/data/repository/quotes_repository_impl.dart';
+import 'package:isar_flutter/domain/repository/internet_connection_repository.dart';
 import 'package:isar_flutter/domain/repository/quotes_repository.dart';
 import 'package:isar_flutter/domain/usecase/deleted_quotes_usecase.dart';
 import 'package:isar_flutter/domain/usecase/get_quotes_usecase.dart';
 import 'package:isar_flutter/domain/usecase/get_save_quotes_usecase.dart';
+import 'package:isar_flutter/domain/usecase/internet_connectivity_usecase.dart';
 import 'package:isar_flutter/domain/usecase/save_quotes_usecase.dart';
 
 final locator = GetIt.instance;
@@ -36,6 +39,10 @@ void initInjection() {
     ),
   );
 
+  locator.registerSingleton<IInternetConnectionRepository>(
+    InternetConnectionRepositoryImpl(),
+  );
+
   //usecase
   locator.registerFactory(() => GetQuotesUsecase(repository: locator.get()));
 
@@ -47,5 +54,9 @@ void initInjection() {
 
   locator.registerFactory(
     () => DeletedQuotesUsecase(repository: locator.get()),
+  );
+
+  locator.registerFactory(
+    () => InternetConnectivityUsecase(repository: locator.get()),
   );
 }

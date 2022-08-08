@@ -16,3 +16,17 @@ class QuoteEventSave extends QuotesEvent {
   @override
   List<Object?> get props => [text, author];
 }
+
+class QuoteEventInternetCheck extends QuotesEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+class QuoteEventInputLabel extends QuotesEvent {
+  final String label;
+
+  QuoteEventInputLabel({required this.label});
+
+  @override
+  List<Object?> get props => [label];
+}

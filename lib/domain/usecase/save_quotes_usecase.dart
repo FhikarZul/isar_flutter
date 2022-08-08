@@ -9,9 +9,11 @@ class SaveQuotesUsecase {
   Future<Either<Exception, bool>> execute({
     required String text,
     required String author,
+    required String label,
   }) =>
       repository.saveQuote(
         text: text,
         author: author,
+        label: label,
       );
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:isar_flutter/injection.dart';
 
-import 'presentation/view/home_page.dart';
+import 'presentation/view/home/home_page.dart';
 
 void main() {
   initInjection();

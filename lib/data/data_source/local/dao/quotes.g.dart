@@ -15,13 +15,17 @@ extension GetQuotesCollection on Isar {
 const QuotesSchema = CollectionSchema(
   name: 'Quotes',
   schema:
-      '{"name":"Quotes","idName":"id","properties":[{"name":"author","type":"String"},{"name":"text","type":"String"},{"name":"uuid","type":"String"}],"indexes":[],"links":[]}',
+      '{"name":"Quotes","idName":"id","properties":[{"name":"author","type":"String"},{"name":"text","type":"String"},{"name":"uuid","type":"String"}],"indexes":[{"name":"uuid","unique":true,"properties":[{"name":"uuid","type":"Hash","caseSensitive":true}]}],"links":[{"name":"label","target":"Label"}]}',
   idName: 'id',
   propertyIds: {'author': 0, 'text': 1, 'uuid': 2},
   listProperties: {},
-  indexIds: {},
-  indexValueTypes: {},
-  linkIds: {},
+  indexIds: {'uuid': 0},
+  indexValueTypes: {
+    'uuid': [
+      IndexValueType.stringHash,
+    ]
+  },
+  linkIds: {'label': 0},
   backlinkLinkNames: {},
   getId: _quotesGetId,
   setId: _quotesSetId,
@@ -49,7 +53,7 @@ void _quotesSetId(Quotes object, int id) {
 }
 
 List<IsarLinkBase> _quotesGetLinks(Quotes object) {
-  return [];
+  return [object.label];
 }
 
 void _quotesSerializeNative(
@@ -87,6 +91,7 @@ Quotes _quotesDeserializeNative(IsarCollection<Quotes> collection, int id,
   object.id = id;
   object.text = reader.readString(offsets[1]);
   object.uuid = reader.readString(offsets[2]);
+  _quotesAttachLinks(collection, id, object);
   return object;
 }
 
@@ -121,6 +126,7 @@ Quotes _quotesDeserializeWeb(IsarCollection<Quotes> collection, dynamic jsObj) {
   object.id = IsarNative.jsObjectGet(jsObj, 'id');
   object.text = IsarNative.jsObjectGet(jsObj, 'text') ?? '';
   object.uuid = IsarNative.jsObjectGet(jsObj, 'uuid') ?? '';
+  _quotesAttachLinks(collection, IsarNative.jsObjectGet(jsObj, 'id'), object);
   return object;
 }
 
@@ -139,11 +145,56 @@ P _quotesDeserializePropWeb<P>(Object jsObj, String propertyName) {
   }
 }
 
-void _quotesAttachLinks(IsarCollection col, int id, Quotes object) {}
+void _quotesAttachLinks(IsarCollection col, int id, Quotes object) {
+  object.label.attach(col, col.isar.labels, 'label', id);
+}
+
+extension QuotesByIndex on IsarCollection<Quotes> {
+  Future<Quotes?> getByUuid(String uuid) {
+    return getByIndex('uuid', [uuid]);
+  }
+
+  Quotes? getByUuidSync(String uuid) {
+    return getByIndexSync('uuid', [uuid]);
+  }
+
+  Future<bool> deleteByUuid(String uuid) {
+    return deleteByIndex('uuid', [uuid]);
+  }
+
+  bool deleteByUuidSync(String uuid) {
+    return deleteByIndexSync('uuid', [uuid]);
+  }
+
+  Future<List<Quotes?>> getAllByUuid(List<String> uuidValues) {
+    final values = uuidValues.map((e) => [e]).toList();
+    return getAllByIndex('uuid', values);
+  }
+
+  List<Quotes?> getAllByUuidSync(List<String> uuidValues) {
+    final values = uuidValues.map((e) => [e]).toList();
+    return getAllByIndexSync('uuid', values);
+  }
+
+  Future<int> deleteAllByUuid(List<String> uuidValues) {
+    final values = uuidValues.map((e) => [e]).toList();
+    return deleteAllByIndex('uuid', values);
+  }
+
+  int deleteAllByUuidSync(List<String> uuidValues) {
+    final values = uuidValues.map((e) => [e]).toList();
+    return deleteAllByIndexSync('uuid', values);
+  }
+}
 
 extension QuotesQueryWhereSort on QueryBuilder<Quotes, Quotes, QWhere> {
   QueryBuilder<Quotes, Quotes, QAfterWhere> anyId() {
     return addWhereClauseInternal(const IdWhereClause.any());
+  }
+
+  QueryBuilder<Quotes, Quotes, QAfterWhere> anyUuid() {
+    return addWhereClauseInternal(
+        const IndexWhereClause.any(indexName: 'uuid'));
   }
 }
 
@@ -199,6 +250,37 @@ extension QuotesQueryWhere on QueryBuilder<Quotes, Quotes, QWhereClause> {
       upper: upperId,
       includeUpper: includeUpper,
     ));
+  }
+
+  QueryBuilder<Quotes, Quotes, QAfterWhereClause> uuidEqualTo(String uuid) {
+    return addWhereClauseInternal(IndexWhereClause.equalTo(
+      indexName: 'uuid',
+      value: [uuid],
+    ));
+  }
+
+  QueryBuilder<Quotes, Quotes, QAfterWhereClause> uuidNotEqualTo(String uuid) {
+    if (whereSortInternal == Sort.asc) {
+      return addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'uuid',
+        upper: [uuid],
+        includeUpper: false,
+      )).addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'uuid',
+        lower: [uuid],
+        includeLower: false,
+      ));
+    } else {
+      return addWhereClauseInternal(IndexWhereClause.greaterThan(
+        indexName: 'uuid',
+        lower: [uuid],
+        includeLower: false,
+      )).addWhereClauseInternal(IndexWhereClause.lessThan(
+        indexName: 'uuid',
+        upper: [uuid],
+        includeUpper: false,
+      ));
+    }
   }
 }
 
@@ -566,7 +648,16 @@ extension QuotesQueryFilter on QueryBuilder<Quotes, Quotes, QFilterCondition> {
   }
 }
 
-extension QuotesQueryLinks on QueryBuilder<Quotes, Quotes, QFilterCondition> {}
+extension QuotesQueryLinks on QueryBuilder<Quotes, Quotes, QFilterCondition> {
+  QueryBuilder<Quotes, Quotes, QAfterFilterCondition> label(
+      FilterQuery<Label> q) {
+    return linkInternal(
+      isar.labels,
+      q,
+      'label',
+    );
+  }
+}
 
 extension QuotesQueryWhereSortBy on QueryBuilder<Quotes, Quotes, QSortBy> {
   QueryBuilder<Quotes, Quotes, QAfterSortBy> sortByAuthor() {
