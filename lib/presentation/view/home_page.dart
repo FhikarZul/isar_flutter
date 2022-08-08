@@ -28,6 +28,12 @@ class _HomePageState extends State<HomePage> {
               ),
             );
           }
+
+          if (state.isError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Terjadi Kesalahan!')),
+            );
+          }
         },
         builder: (context, state) {
           return BlocBuilder<QuotesBloc, QuotesState>(
@@ -66,19 +72,24 @@ class _HomePageState extends State<HomePage> {
                           padding: const EdgeInsets.all(20),
                           child: SizedBox(
                             width: double.infinity,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '"${state.quote.text}"',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
+                            child: state.isLoading
+                                ? const Center(
+                                    child: CircularProgressIndicator(),
+                                  )
+                                : Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        '"${state.quote.text}"',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      Text(state.quote.author),
+                                    ],
                                   ),
-                                ),
-                                Text(state.quote.author),
-                              ],
-                            ),
                           ),
                         ),
                       ),

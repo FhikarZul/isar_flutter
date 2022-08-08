@@ -27,15 +27,21 @@ class QuotesBloc extends Bloc<QuotesEvent, QuotesState> {
     });
 
     on<QuoteEventSave>((event, emit) async {
+      emit(state.copyWith(isLoading: true));
+
       final result = await saveQuotesUsecase.execute(
         text: event.text,
         author: event.author,
       );
 
       result.fold(
-        (error) => print(error),
+        (error) {
+          print(error);
+          emit(state.copyWith(isError: true, isLoading: false));
+        },
         (result) {
-          emit(state.copyWith(saveIsSuccess: true));
+          print(result);
+          emit(state.copyWith(saveIsSuccess: true, isLoading: false));
           emit(state.copyWith(saveIsSuccess: false));
         },
       );
