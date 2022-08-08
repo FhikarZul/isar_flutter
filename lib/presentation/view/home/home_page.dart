@@ -135,6 +135,8 @@ class _HomePageState extends State<HomePage> {
                                                               context)
                                                           .showSnackBar(
                                                         const SnackBar(
+                                                          backgroundColor:
+                                                              Colors.red,
                                                           content: Text(
                                                               'Label is empty!'),
                                                         ),
